@@ -1,0 +1,1076 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Memory Verse Scoreboard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Zilla+Slab:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#1F2A38;
+    --chalk:#2B4339;
+    --chalk-2:#375346;
+    --paper:#F7F3E8;
+    --paper-2:#EEE7D6;
+    --brass:#C9A05B;
+    --brass-2:#B78B3E;
+    --coral:#B8503D;
+    --slate:#6E7B76;
+    --line:rgba(31,42,56,0.14);
+    --good:#4C7A5C;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--paper);
+    color:var(--ink);
+    font-family:'Inter',system-ui,sans-serif;
+    -webkit-font-smoothing:antialiased;
+  }
+  .wrap{
+    max-width:760px;
+    margin:0 auto;
+    padding:28px 20px 60px;
+  }
+  h1,h2,h3{
+    font-family:'Zilla Slab',Georgia,serif;
+    margin:0;
+    font-weight:600;
+  }
+  header.top{
+    display:flex;
+    align-items:flex-start;
+    justify-content:space-between;
+    gap:16px;
+    margin-bottom:22px;
+    flex-wrap:wrap;
+  }
+  .titleblock h1{
+    font-size:28px;
+    color:var(--chalk);
+    letter-spacing:0.2px;
+  }
+  .titleblock .sub{
+    font-size:13.5px;
+    color:var(--slate);
+    margin-top:4px;
+  }
+  .titleblock .sub input{
+    font:inherit;
+    color:var(--slate);
+    border:none;
+    background:transparent;
+    border-bottom:1px dashed transparent;
+    padding:0;
+    width:auto;
+    min-width:60px;
+  }
+  .titleblock .sub input:hover, .titleblock .sub input:focus{
+    border-bottom:1px dashed var(--slate);
+    outline:none;
+  }
+  button{
+    font-family:'Inter',sans-serif;
+    cursor:pointer;
+  }
+  .pill{
+    border:1px solid var(--line);
+    background:#fff;
+    color:var(--ink);
+    padding:8px 14px;
+    border-radius:999px;
+    font-size:13px;
+    font-weight:600;
+    display:inline-flex;
+    align-items:center;
+    gap:6px;
+    transition:background .15s ease, border-color .15s ease;
+  }
+  .pill:hover{ border-color:var(--chalk); }
+  .pill.active{
+    background:var(--chalk);
+    border-color:var(--chalk);
+    color:#fff;
+  }
+  .pill.coral{ color:var(--coral); border-color:rgba(184,80,61,0.35); }
+  .pill.coral:hover{ border-color:var(--coral); }
+
+  .classstats{
+    display:flex;
+    gap:12px;
+    margin-bottom:16px;
+  }
+  .statcard{
+    flex:1;
+    background:var(--chalk);
+    color:#fff;
+    border-radius:10px;
+    padding:14px 16px;
+  }
+  .statcard .num{
+    font-family:'Zilla Slab',serif;
+    font-size:26px;
+    font-weight:700;
+    line-height:1.1;
+  }
+  .statcard .lbl{
+    font-size:12px;
+    color:rgba(255,255,255,0.72);
+    margin-top:3px;
+  }
+
+  section.board{
+    background:#fff;
+    border:1px solid var(--line);
+    border-radius:10px;
+    overflow:hidden;
+  }
+  .board-head{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    padding:14px 18px;
+    background:var(--chalk);
+    color:#fff;
+  }
+  .board-head h2{ font-size:17px; color:#fff; }
+  .board-head .weeksum{ font-size:12.5px; color:rgba(255,255,255,0.72); }
+
+  ol.ranklist{
+    list-style:none;
+    margin:0; padding:0;
+  }
+  ol.ranklist li{
+    display:flex;
+    align-items:center;
+    gap:14px;
+    padding:13px 18px;
+    border-bottom:1px solid var(--line);
+  }
+  ol.ranklist li:last-child{ border-bottom:none; }
+  .rank{
+    font-family:'Zilla Slab',serif;
+    font-size:16px;
+    font-weight:700;
+    color:var(--slate);
+    width:26px;
+    text-align:right;
+    flex:none;
+  }
+  .rank.r1{ color:var(--brass-2); font-size:19px; }
+  .rank.r2{ color:#8B8378; }
+  .rank.r3{ color:#A9764F; }
+  .rowmain{ flex:1; min-width:0; }
+  .rowname{
+    font-size:15px;
+    font-weight:600;
+    margin-bottom:6px;
+    display:flex;
+    align-items:baseline;
+    justify-content:space-between;
+    gap:10px;
+  }
+  .rowname .pts{
+    font-family:'Zilla Slab',serif;
+    font-weight:700;
+    color:var(--ink);
+    font-size:15px;
+    flex:none;
+  }
+  .bar-track{
+    height:8px;
+    background:var(--paper-2);
+    border-radius:4px;
+    overflow:hidden;
+  }
+  .bar-fill{
+    height:100%;
+    background:linear-gradient(90deg, var(--chalk-2), var(--chalk));
+    border-radius:4px;
+    transition:width .5s ease;
+  }
+  .r1 ~ .rowmain .bar-fill, li:first-child .bar-fill{
+    background:linear-gradient(90deg, var(--brass-2), var(--brass));
+  }
+  .empty{
+    padding:34px 18px;
+    text-align:center;
+    color:var(--slate);
+    font-size:14px;
+    line-height:1.6;
+  }
+
+  .versecard{
+    background:var(--paper-2);
+    border:1px solid var(--line);
+    border-radius:10px;
+    padding:16px 18px;
+    margin-bottom:16px;
+  }
+  .versecard .vlbl{
+    font-size:11.5px;
+    color:var(--slate);
+    font-weight:600;
+    margin-bottom:6px;
+  }
+  .versecard .vtext{
+    font-family:'Zilla Slab',serif;
+    font-size:17px;
+    line-height:1.5;
+    color:var(--ink);
+  }
+  .versecard .vtext.empty{
+    font-family:'Inter',sans-serif;
+    font-size:13.5px;
+    color:var(--slate);
+    font-style:italic;
+  }
+
+  .sharepanel{
+    background:#fff;
+    border:1px solid var(--line);
+    border-radius:10px;
+    padding:18px;
+    margin-bottom:16px;
+    display:flex;
+    gap:16px;
+    flex-wrap:wrap;
+    align-items:flex-start;
+  }
+  .sharepanel img{
+    border-radius:8px;
+    border:1px solid var(--line);
+    flex:none;
+  }
+  .sharepanel .sharebody{ flex:1; min-width:200px; }
+  .sharepanel h3{ font-size:15px; color:var(--chalk); margin-bottom:4px; }
+  .sharepanel p{ font-size:12.5px; color:var(--slate); margin:0 0 10px; line-height:1.5; }
+  .sharepanel .row{ display:flex; gap:8px; }
+  .sharepanel input{ flex:1; font-size:12.5px; }
+  .sharepanel button.copy{
+    border:1px solid var(--chalk); background:var(--chalk); color:#fff;
+    padding:8px 14px; border-radius:7px; font-size:13px; font-weight:600;
+  }
+
+  .versebox textarea{
+    font:inherit;
+    width:100%;
+    min-height:70px;
+    padding:10px;
+    border:1px solid var(--line);
+    border-radius:7px;
+    background:var(--paper);
+    color:var(--ink);
+    resize:vertical;
+  }
+  .versebox .row{ display:flex; gap:8px; align-items:center; margin-top:10px; flex-wrap:wrap; }
+
+  .teacher{
+    margin-top:26px;
+    border:1px solid var(--line);
+    border-radius:10px;
+    background:#fff;
+    padding:18px;
+  }
+  .teacher h3{ font-size:15px; color:var(--chalk); margin-bottom:2px; }
+  .teacher .hint{ font-size:12.5px; color:var(--slate); margin-bottom:14px; }
+
+  .weekbar{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    flex-wrap:wrap;
+    margin-bottom:16px;
+  }
+  select, input[type=text], input[type=number], input[type=date], input[type=month], textarea{
+    font:inherit;
+    padding:8px 10px;
+    border:1px solid var(--line);
+    border-radius:7px;
+    background:var(--paper);
+    color:var(--ink);
+  }
+  select:focus, input:focus, textarea:focus{ outline:2px solid var(--chalk-2); outline-offset:1px; }
+  .weekbar .ptsedit{
+    display:flex; align-items:center; gap:6px; font-size:13px; color:var(--slate);
+  }
+  .weekbar .ptsedit input{ width:56px; text-align:center; }
+
+  .studentrow{
+    display:flex;
+    align-items:center;
+    gap:12px;
+    padding:9px 0;
+    border-bottom:1px solid var(--line);
+  }
+  .studentrow:last-of-type{ border-bottom:none; }
+  .studentrow .sname{ flex:1; font-size:14.5px; font-weight:500; }
+  .studentrow .sname.editing{ display:flex; gap:8px; align-items:center; }
+  .studentrow .sname.editing input{ flex:1; padding:6px 8px; }
+  .linkbtn{
+    background:none; border:none; color:var(--slate); font-size:12px;
+    padding:4px 6px; opacity:0.7; text-decoration:underline;
+  }
+  .linkbtn:hover{ opacity:1; color:var(--chalk); }
+  .linkbtn.save{ color:var(--good); text-decoration:none; font-weight:600; }
+  .linkbtn.save:hover{ color:var(--good); }
+  .check{
+    width:30px; height:30px;
+    border-radius:8px;
+    border:1.5px solid var(--line);
+    background:var(--paper);
+    display:flex; align-items:center; justify-content:center;
+    font-size:15px;
+    color:transparent;
+    flex:none;
+  }
+  .check.done{
+    background:var(--good);
+    border-color:var(--good);
+    color:#fff;
+  }
+  .rowdel{
+    background:none; border:none; color:var(--slate); font-size:12px;
+    padding:4px 6px; opacity:0.55;
+  }
+  .rowdel:hover{ opacity:1; color:var(--coral); }
+
+  .addline{
+    display:flex; gap:8px; margin-top:12px;
+  }
+  .addline input{ flex:1; }
+  .addline button{
+    border:1px solid var(--chalk); background:var(--chalk); color:#fff;
+    padding:8px 14px; border-radius:7px; font-size:13.5px; font-weight:600;
+  }
+  .addline button.secondary{
+    background:#fff; color:var(--chalk);
+  }
+
+  .settingsrow{
+    display:flex; align-items:center; gap:10px; margin-top:16px;
+    padding-top:14px; border-top:1px solid var(--line);
+    font-size:13px; color:var(--slate); flex-wrap:wrap;
+  }
+  .settingsrow input{ width:100px; }
+
+  .gate{
+    background:#fff; border:1px solid var(--line); border-radius:10px;
+    padding:22px; margin-top:26px;
+  }
+  .gate h3{ font-size:15px; margin-bottom:6px; color:var(--chalk); }
+  .gate p{ font-size:13px; color:var(--slate); margin:0 0 14px; line-height:1.5; }
+  .gate .row{ display:flex; gap:8px; }
+  .gate input{ flex:1; }
+  .gate button{
+    border:1px solid var(--chalk); background:var(--chalk); color:#fff;
+    padding:9px 16px; border-radius:7px; font-weight:600; font-size:13.5px;
+  }
+  .gate .err{ color:var(--coral); font-size:12.5px; margin-top:8px; }
+  .gate .switchmode{
+    background:none; border:none; color:var(--slate); font-size:12px;
+    text-decoration:underline; padding:0; margin-top:10px;
+  }
+
+  .toast{
+    position:fixed; bottom:20px; left:50%; transform:translateX(-50%);
+    background:var(--ink); color:#fff; padding:9px 16px; border-radius:999px;
+    font-size:13px; opacity:0; pointer-events:none; transition:opacity .25s ease;
+  }
+  .toast.show{ opacity:0.95; }
+
+  @media (prefers-reduced-motion: reduce){
+    .bar-fill{ transition:none; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="top">
+    <div class="titleblock">
+      <h1 id="classTitle">Memory Verse Scoreboard</h1>
+      <div class="sub" id="subLine">Loading…</div>
+    </div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;">
+      <button class="pill" id="shareBtn">Share</button>
+      <button class="pill" id="modeBtn">Teacher Mode</button>
+    </div>
+  </header>
+
+  <div id="shareArea"></div>
+
+  <div id="verseArea"></div>
+
+  <div class="classstats" id="classStats"></div>
+
+  <section class="board">
+    <div class="board-head">
+      <h2>Leaderboard</h2>
+      <div class="weeksum" id="weekSum"></div>
+    </div>
+    <ol class="ranklist" id="rankList"></ol>
+  </section>
+
+  <div id="gateArea"></div>
+  <div id="teacherArea"></div>
+
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+(function(){
+  const SHARED = true;
+  const ROSTER_KEY = 'sv:roster';
+  const SCORES_KEY = 'sv:scores';
+
+  let roster = null;        // { className, pin, weeks:[{id,label,points}], students:[{id,name}] }
+  let scores = {};          // { "studentId::weekId": true }
+  let isTeacher = false;    // session-only, not persisted
+  let activeWeekId = null;
+  let editingStudentId = null; // session-only, which roster row is mid-rename
+  let verseEditMonth = null;   // session-only, which month the verse editor is showing
+  let lastRosterStr = null;
+  let lastScoresStr = null;
+  let pollTimer = null;
+
+  const $ = (sel) => document.querySelector(sel);
+  const el = (tag, attrs, ...kids) => {
+    const n = document.createElement(tag);
+    if(attrs) for(const k in attrs){
+      if(k === 'class') n.className = attrs[k];
+      else if(k.startsWith('on')) n.addEventListener(k.slice(2), attrs[k]);
+      else n.setAttribute(k, attrs[k]);
+    }
+    kids.flat().forEach(k => {
+      if(k == null) return;
+      n.appendChild(typeof k === 'string' ? document.createTextNode(k) : k);
+    });
+    return n;
+  };
+
+  function toast(msg){
+    const t = $('#toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    clearTimeout(toast._h);
+    toast._h = setTimeout(()=> t.classList.remove('show'), 1800);
+  }
+
+  function uid(prefix){
+    return prefix + '_' + Date.now().toString(36) + Math.random().toString(36).slice(2,7);
+  }
+
+  function dateToISO(d){
+    // local-safe yyyy-mm-dd — avoids the UTC shift that toISOString() can cause
+    const y = d.getFullYear();
+    const m = String(d.getMonth()+1).padStart(2,'0');
+    const day = String(d.getDate()).padStart(2,'0');
+    return `${y}-${m}-${day}`;
+  }
+
+  function todayISO(){
+    return dateToISO(new Date());
+  }
+
+  function sundayOnOrBefore(dateObj){
+    const d = new Date(dateObj);
+    d.setHours(0,0,0,0);
+    d.setDate(d.getDate() - d.getDay()); // getDay(): Sunday = 0
+    return d;
+  }
+
+  function formatWeekLabel(iso){
+    const d = new Date(iso + 'T00:00:00');
+    return d.toLocaleDateString(undefined, { month:'short', day:'numeric', year:'numeric' });
+  }
+
+  function pickDefaultWeekId(){
+    if(!roster.weeks.length) return null;
+    const currentSunday = dateToISO(sundayOnOrBefore(new Date()));
+    const today = todayISO();
+    const onCurrent = roster.weeks.find(w => w.date === currentSunday);
+    if(onCurrent) return onCurrent.id;
+    const upcoming = roster.weeks
+      .filter(w => w.date >= today)
+      .sort((a,b) => a.date.localeCompare(b.date));
+    if(upcoming.length) return upcoming[0].id;
+    const sorted = [...roster.weeks].sort((a,b) => a.date.localeCompare(b.date));
+    return sorted[sorted.length-1].id;
+  }
+
+  function generateSundaysThrough(endISO){
+    const existingDates = new Set(roster.weeks.map(w => w.date));
+    const cursor = sundayOnOrBefore(new Date());
+    const added = [];
+    while(dateToISO(cursor) <= endISO){
+      const iso = dateToISO(cursor);
+      if(!existingDates.has(iso)){
+        added.push({ id: uid('wk'), label: formatWeekLabel(iso), points: 1, date: iso });
+      }
+      cursor.setDate(cursor.getDate() + 7);
+    }
+    return added;
+  }
+
+  function defaultRoster(){
+    return { className:'Memory Verse Scoreboard', pin:null, weeks:[], students:[], verses:{} };
+  }
+
+  function fillMissingDates(r){
+    // weeks created before date-tracking was added default to today so
+    // month/year totals still have something sensible to bucket them into
+    r.weeks.forEach(w => { if(!w.date) w.date = todayISO(); });
+    if(!r.verses) r.verses = {};
+    return r;
+  }
+
+  function monthKey(d){
+    return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
+  }
+
+  function monthLabel(key){
+    const [y,m] = key.split('-').map(Number);
+    return new Date(y, m-1, 1).toLocaleDateString(undefined, { month:'long', year:'numeric' });
+  }
+
+  async function loadAll(){
+    try{
+      const r = await window.storage.get(ROSTER_KEY, SHARED);
+      roster = r ? fillMissingDates(JSON.parse(r.value)) : defaultRoster();
+    }catch(e){ roster = defaultRoster(); }
+    try{
+      const s = await window.storage.get(SCORES_KEY, SHARED);
+      scores = s ? JSON.parse(s.value) : {};
+    }catch(e){ scores = {}; }
+    if(!activeWeekId && roster.weeks.length){
+      activeWeekId = pickDefaultWeekId();
+    }
+  }
+
+  async function saveRoster(){
+    try{
+      await window.storage.set(ROSTER_KEY, JSON.stringify(roster), SHARED);
+    }catch(e){ toast('Could not save — try again'); console.error(e); }
+  }
+  async function saveScores(){
+    try{
+      await window.storage.set(SCORES_KEY, JSON.stringify(scores), SHARED);
+    }catch(e){ toast('Could not save — try again'); console.error(e); }
+  }
+
+  function totalsByStudent(){
+    const pointsByWeek = {};
+    roster.weeks.forEach(w => pointsByWeek[w.id] = w.points || 1);
+    return roster.students.map(s => {
+      let total = 0;
+      roster.weeks.forEach(w => {
+        if(scores[s.id+'::'+w.id]) total += pointsByWeek[w.id];
+      });
+      return { id:s.id, name:s.name, total };
+    }).sort((a,b)=> b.total - a.total || a.name.localeCompare(b.name));
+  }
+
+  function classTotals(){
+    const now = new Date();
+    const curYear = now.getFullYear();
+    const curMonth = now.getMonth();
+    let monthTotal = 0, yearTotal = 0;
+    roster.weeks.forEach(w => {
+      const pts = w.points || 1;
+      const doneCount = roster.students.reduce((n, s) => n + (scores[s.id+'::'+w.id] ? 1 : 0), 0);
+      if(!doneCount) return;
+      const weekTotal = doneCount * pts;
+      const d = w.date ? new Date(w.date + 'T00:00:00') : null;
+      if(d && !isNaN(d)){
+        if(d.getFullYear() === curYear) yearTotal += weekTotal;
+        if(d.getFullYear() === curYear && d.getMonth() === curMonth) monthTotal += weekTotal;
+      }
+    });
+    return { monthTotal, yearTotal };
+  }
+
+  function renderClassStats(){
+    const wrap = $('#classStats');
+    wrap.innerHTML = '';
+    if(roster.students.length === 0 || roster.weeks.length === 0) return;
+    const { monthTotal, yearTotal } = classTotals();
+    const monthName = new Date().toLocaleString(undefined, { month:'long' });
+    wrap.appendChild(el('div', {class:'statcard'},
+      el('div', {class:'num'}, String(monthTotal)),
+      el('div', {class:'lbl'}, `Class points · ${monthName}`)
+    ));
+    wrap.appendChild(el('div', {class:'statcard'},
+      el('div', {class:'num'}, String(yearTotal)),
+      el('div', {class:'lbl'}, `Class points · ${new Date().getFullYear()}`)
+    ));
+  }
+
+  function renderVerseCard(){
+    const wrap = $('#verseArea');
+    wrap.innerHTML = '';
+    const key = monthKey(new Date());
+    const verse = (roster.verses && roster.verses[key]) || '';
+    const card = el('div', {class:'versecard'},
+      el('div', {class:'vlbl'}, `Memory verse · ${monthLabel(key)}`),
+      verse
+        ? el('div', {class:'vtext'}, verse)
+        : el('div', {class:'vtext empty'}, isTeacher
+            ? 'No verse set for this month yet — add one below in Teacher Mode.'
+            : 'No verse set for this month yet.')
+    );
+    wrap.appendChild(card);
+  }
+
+  function renderTitle(){
+    $('#classTitle').textContent = roster.className || 'Memory Verse Scoreboard';
+    const weekCount = roster.weeks.length;
+    const studentCount = roster.students.length;
+    $('#subLine').textContent = studentCount === 0
+      ? 'No students added yet'
+      : `${studentCount} student${studentCount===1?'':'s'} · ${weekCount} week${weekCount===1?'':'s'} tracked`;
+  }
+
+  function renderLeaderboard(){
+    const list = $('#rankList');
+    list.innerHTML = '';
+    const totals = totalsByStudent();
+    $('#weekSum').textContent = roster.weeks.length
+      ? `Updated live`
+      : '';
+
+    if(totals.length === 0){
+      list.appendChild(el('div', {class:'empty'},
+        'No students on the board yet. Turn on Teacher Mode to add your class and start a week.'));
+      return;
+    }
+    const max = Math.max(1, ...totals.map(t=>t.total));
+    totals.forEach((t, i) => {
+      const rankClass = i===0 ? 'r1' : i===1 ? 'r2' : i===2 ? 'r3' : '';
+      const li = el('li', {},
+        el('div', {class:'rank '+rankClass}, String(i+1)),
+        el('div', {class:'rowmain'},
+          el('div', {class:'rowname'},
+            el('span', {}, t.name),
+            el('span', {class:'pts'}, t.total + (t.total===1?' pt':' pts'))
+          ),
+          el('div', {class:'bar-track'},
+            el('div', {class:'bar-fill', style:`width:${Math.round((t.total/max)*100)}%`})
+          )
+        )
+      );
+      list.appendChild(li);
+    });
+  }
+
+  function renderGate(){
+    const area = $('#gateArea');
+    area.innerHTML = '';
+    if(isTeacher) return;
+
+    // gate only shows when someone has clicked "Teacher Mode"
+    if(!area.dataset.open) return;
+
+    const needsSetup = !roster.pin;
+    const box = el('div', {class:'gate'});
+    if(needsSetup){
+      box.appendChild(el('h3', {}, 'Set up teacher access'));
+      box.appendChild(el('p', {}, 'Create a PIN for your teaching team. Share it with co-teachers — students won\'t need it to view the board.'));
+      const input = el('input', {type:'text', placeholder:'Choose a PIN (e.g. 4821)', maxlength:'12'});
+      const btn = el('button', {}, 'Save PIN & unlock');
+      const err = el('div', {class:'err'});
+      btn.addEventListener('click', async () => {
+        const val = input.value.trim();
+        if(!val){ err.textContent = 'Enter a PIN first.'; return; }
+        roster.pin = val;
+        await saveRoster();
+        isTeacher = true;
+        area.dataset.open = '';
+        renderAll();
+        toast('Teacher mode unlocked');
+      });
+      box.appendChild(el('div', {class:'row'}, input, btn));
+      box.appendChild(err);
+    } else {
+      box.appendChild(el('h3', {}, 'Enter teacher PIN'));
+      box.appendChild(el('p', {}, 'Ask your team lead for the PIN if you don\'t have it.'));
+      const input = el('input', {type:'text', placeholder:'PIN'});
+      const btn = el('button', {}, 'Unlock');
+      const err = el('div', {class:'err'});
+      const tryUnlock = () => {
+        if(input.value.trim() === roster.pin){
+          isTeacher = true;
+          area.dataset.open = '';
+          renderAll();
+          toast('Teacher mode unlocked');
+        } else {
+          err.textContent = 'That PIN doesn\'t match.';
+        }
+      };
+      input.addEventListener('keydown', e => { if(e.key==='Enter') tryUnlock(); });
+      btn.addEventListener('click', tryUnlock);
+      box.appendChild(el('div', {class:'row'}, input, btn));
+      box.appendChild(err);
+      box.appendChild(el('button', {class:'switchmode', onclick:()=>{ area.dataset.open=''; renderAll(); }}, 'Cancel'));
+    }
+    area.appendChild(box);
+  }
+
+  function renderTeacherPanel(){
+    const area = $('#teacherArea');
+    area.innerHTML = '';
+    if(!isTeacher) return;
+
+    // --- Monthly memory verse ---
+    const versePanel = el('div', {class:'teacher versebox'});
+    versePanel.appendChild(el('h3', {}, 'Monthly memory verse'));
+    versePanel.appendChild(el('div', {class:'hint'}, 'This shows at the top of the board for everyone to see.'));
+
+    const monthInput = el('input', {type:'month', value: verseEditMonth});
+    const textarea = el('textarea', {placeholder:'e.g. "For God so loved the world... — John 3:16"'});
+    textarea.value = (roster.verses && roster.verses[verseEditMonth]) || '';
+
+    monthInput.addEventListener('change', () => {
+      verseEditMonth = monthInput.value || monthKey(new Date());
+      renderTeacherPanel();
+    });
+
+    const saveVerseBtn = el('button', {style:'border:1px solid var(--chalk);background:var(--chalk);color:#fff;padding:8px 14px;border-radius:7px;font-size:13.5px;font-weight:600;'}, 'Save verse');
+    saveVerseBtn.addEventListener('click', async () => {
+      if(!roster.verses) roster.verses = {};
+      roster.verses[verseEditMonth] = textarea.value.trim();
+      await saveRoster();
+      renderVerseCard();
+      toast('Verse saved');
+    });
+
+    versePanel.appendChild(el('div', {class:'row'}, el('span', {style:'font-size:13px;color:var(--slate);'}, 'Month'), monthInput));
+    versePanel.appendChild(textarea);
+    versePanel.appendChild(el('div', {class:'row'}, saveVerseBtn));
+    area.appendChild(versePanel);
+
+    const panel = el('div', {class:'teacher'});
+    panel.appendChild(el('h3', {}, 'Enter this week\'s verses'));
+    panel.appendChild(el('div', {class:'hint'}, 'Tap a student to mark their verse said for the selected week.'));
+
+    // week bar
+    const weekSelect = el('select', {});
+    const sortedWeeks = [...roster.weeks].sort((a,b) => (a.date||'').localeCompare(b.date||''));
+    if(sortedWeeks.length === 0){
+      weekSelect.appendChild(el('option', {}, 'No weeks yet'));
+      weekSelect.disabled = true;
+    } else {
+      sortedWeeks.forEach(w => {
+        const opt = el('option', {value:w.id}, `${w.label} (${w.points||1} pt${(w.points||1)===1?'':'s'})`);
+        if(w.id === activeWeekId) opt.selected = true;
+        weekSelect.appendChild(opt);
+      });
+      weekSelect.addEventListener('change', () => {
+        activeWeekId = weekSelect.value;
+        renderTeacherPanel();
+      });
+    }
+
+    const weekbar = el('div', {class:'weekbar'}, weekSelect);
+
+    if(activeWeekId && roster.weeks.length){
+      const wk = roster.weeks.find(w=>w.id===activeWeekId);
+      const ptsWrap = el('div', {class:'ptsedit'});
+      ptsWrap.appendChild(el('span', {}, 'Worth'));
+      const ptsInput = el('input', {type:'number', min:'0', value:String(wk.points||1)});
+      ptsInput.addEventListener('change', async () => {
+        wk.points = Math.max(0, parseInt(ptsInput.value||'0',10) || 0);
+        await saveRoster();
+        renderLeaderboard();
+        renderClassStats();
+      });
+      ptsWrap.appendChild(ptsInput);
+      ptsWrap.appendChild(el('span', {}, 'pts'));
+      weekbar.appendChild(ptsWrap);
+
+      const dateWrap = el('div', {class:'ptsedit'});
+      dateWrap.appendChild(el('span', {}, 'Date'));
+      const dateInput = el('input', {type:'date', value: wk.date || todayISO(), style:'width:150px;'});
+      dateInput.addEventListener('change', async () => {
+        wk.date = dateInput.value || todayISO();
+        await saveRoster();
+        renderClassStats();
+      });
+      dateWrap.appendChild(dateInput);
+      weekbar.appendChild(dateWrap);
+
+      const delWeekBtn = el('button', {class:'pill coral', style:'padding:6px 12px;font-size:12px;'}, 'Delete week');
+      delWeekBtn.addEventListener('click', async () => {
+        if(!confirm(`Delete "${wk.label}"? This removes its scores too.`)) return;
+        roster.weeks = roster.weeks.filter(w=>w.id!==wk.id);
+        Object.keys(scores).forEach(k => { if(k.endsWith('::'+wk.id)) delete scores[k]; });
+        activeWeekId = roster.weeks.length ? roster.weeks[roster.weeks.length-1].id : null;
+        await saveRoster();
+        await saveScores();
+        renderAll();
+      });
+      weekbar.appendChild(delWeekBtn);
+    }
+    panel.appendChild(weekbar);
+
+    // add week
+    const addWeekLine = el('div', {class:'addline'});
+    const weekLabelInput = el('input', {type:'text', placeholder:'New week label, e.g. "Sept 7" or "Bonus Week"'});
+    const weekDateInput = el('input', {type:'date', value: todayISO(), style:'flex:none;width:150px;'});
+    const addWeekBtn = el('button', {}, 'Add week');
+    addWeekBtn.addEventListener('click', async () => {
+      const label = weekLabelInput.value.trim();
+      if(!label) return;
+      const w = { id: uid('wk'), label, points: 1, date: weekDateInput.value || todayISO() };
+      roster.weeks.push(w);
+      roster.weeks.sort((a,b) => (a.date||'').localeCompare(b.date||''));
+      activeWeekId = w.id;
+      weekLabelInput.value = '';
+      weekDateInput.value = todayISO();
+      await saveRoster();
+      renderAll();
+    });
+    weekLabelInput.addEventListener('keydown', e => { if(e.key==='Enter') addWeekBtn.click(); });
+    addWeekLine.appendChild(weekLabelInput);
+    addWeekLine.appendChild(weekDateInput);
+    addWeekLine.appendChild(addWeekBtn);
+    panel.appendChild(addWeekLine);
+
+    const genLine = el('div', {class:'addline', style:'margin-top:8px;'});
+    const genBtn = el('button', {class:'secondary', style:'border:1px solid var(--chalk);color:var(--chalk);background:#fff;'}, 'Generate every Sunday through Sept 2031');
+    genBtn.addEventListener('click', async () => {
+      const added = generateSundaysThrough('2031-09-30');
+      if(added.length === 0){
+        toast('Sundays through Sept 2031 are already on the board');
+        return;
+      }
+      roster.weeks.push(...added);
+      roster.weeks.sort((a,b) => (a.date||'').localeCompare(b.date||''));
+      activeWeekId = pickDefaultWeekId();
+      await saveRoster();
+      renderAll();
+      toast(`Added ${added.length} week${added.length===1?'':'s'} through Sept 2031`);
+    });
+    genLine.appendChild(genBtn);
+    panel.appendChild(genLine);
+    panel.appendChild(el('div', {class:'hint', style:'margin-top:4px;'}, 'Fills in one week per Sunday from this week onward — skips any dates already on the board.'));
+
+    // student list for active week
+    if(roster.students.length === 0){
+      panel.appendChild(el('div', {class:'hint', style:'margin-top:14px;'}, 'Add students below to get started.'));
+    } else if(activeWeekId) {
+      const listWrap = el('div', {style:'margin-top:14px;'});
+      roster.students.forEach(s => {
+        const key = s.id + '::' + activeWeekId;
+        const done = !!scores[key];
+        const check = el('button', {class:'check' + (done?' done':'')}, done ? '✓' : '');
+        check.addEventListener('click', async () => {
+          if(scores[key]) delete scores[key]; else scores[key] = true;
+          await saveScores();
+          renderLeaderboard();
+          renderClassStats();
+          renderTeacherPanel();
+        });
+        const delBtn = el('button', {class:'rowdel'}, 'remove student');
+        delBtn.addEventListener('click', async () => {
+          if(!confirm(`Remove ${s.name} from the roster? Their scores will be deleted.`)) return;
+          roster.students = roster.students.filter(x=>x.id!==s.id);
+          Object.keys(scores).forEach(k => { if(k.startsWith(s.id+'::')) delete scores[k]; });
+          await saveRoster();
+          await saveScores();
+          renderAll();
+        });
+
+        let nameCell;
+        if(editingStudentId === s.id){
+          const input = el('input', {type:'text', value:s.name});
+          const commit = async () => {
+            const val = input.value.trim();
+            if(val) s.name = val;
+            editingStudentId = null;
+            await saveRoster();
+            renderAll();
+          };
+          input.addEventListener('keydown', e => {
+            if(e.key === 'Enter') commit();
+            if(e.key === 'Escape'){ editingStudentId = null; renderTeacherPanel(); }
+          });
+          const saveBtn = el('button', {class:'linkbtn save'}, 'Save');
+          saveBtn.addEventListener('click', commit);
+          const cancelBtn = el('button', {class:'linkbtn'}, 'Cancel');
+          cancelBtn.addEventListener('click', () => { editingStudentId = null; renderTeacherPanel(); });
+          nameCell = el('div', {class:'sname editing'}, input, saveBtn, cancelBtn);
+          setTimeout(()=> input.focus(), 30);
+        } else {
+          const editBtn = el('button', {class:'linkbtn'}, 'rename');
+          editBtn.addEventListener('click', () => { editingStudentId = s.id; renderTeacherPanel(); });
+          nameCell = el('div', {class:'sname'},
+            el('span', {}, s.name + ' '),
+            editBtn
+          );
+        }
+
+        const row = el('div', {class:'studentrow'},
+          check,
+          nameCell,
+          delBtn
+        );
+        listWrap.appendChild(row);
+      });
+      panel.appendChild(listWrap);
+    } else {
+      panel.appendChild(el('div', {class:'hint', style:'margin-top:14px;'}, 'Add a week above before marking scores.'));
+    }
+
+    // add student
+    const addStudentLine = el('div', {class:'addline'});
+    const nameInput = el('input', {type:'text', placeholder:'Add a student by name'});
+    const addStudentBtn = el('button', {class:'secondary'}, 'Add student');
+    addStudentBtn.style.border = '1px solid var(--chalk)';
+    const doAdd = async () => {
+      const name = nameInput.value.trim();
+      if(!name) return;
+      roster.students.push({ id: uid('st'), name });
+      nameInput.value = '';
+      await saveRoster();
+      renderAll();
+    };
+    nameInput.addEventListener('keydown', e => { if(e.key==='Enter') doAdd(); });
+    addStudentBtn.addEventListener('click', doAdd);
+    addStudentLine.appendChild(nameInput);
+    addStudentLine.appendChild(addStudentBtn);
+    panel.appendChild(addStudentLine);
+
+    // settings
+    const settings = el('div', {class:'settingsrow'});
+    settings.appendChild(el('span', {}, 'Board name'));
+    const nameField = el('input', {type:'text', value:roster.className || '', style:'width:220px;'});
+    nameField.addEventListener('change', async () => {
+      roster.className = nameField.value.trim() || 'Memory Verse Scoreboard';
+      await saveRoster();
+      renderTitle();
+    });
+    settings.appendChild(nameField);
+    const exitBtn = el('button', {class:'pill', style:'margin-left:auto;'}, 'Exit teacher mode');
+    exitBtn.addEventListener('click', () => {
+      isTeacher = false;
+      renderAll();
+    });
+    settings.appendChild(exitBtn);
+    panel.appendChild(settings);
+
+    area.appendChild(panel);
+  }
+
+  function renderModeBtn(){
+    const btn = $('#modeBtn');
+    btn.textContent = isTeacher ? 'Teacher Mode · On' : 'Teacher Mode';
+    btn.className = 'pill' + (isTeacher ? ' active' : '');
+  }
+
+  function qrImgSrc(url){
+    return 'https://api.qrserver.com/v1/create-qr-code/?size=180x180&margin=8&data=' + encodeURIComponent(url);
+  }
+
+  function renderSharePanel(){
+    const area = $('#shareArea');
+    area.innerHTML = '';
+    if(!area.dataset.open) return;
+
+    let currentUrl = window.location.href;
+    const panel = el('div', {class:'sharepanel'});
+    const qr = el('img', {src: qrImgSrc(currentUrl), width:'160', height:'160', alt:'QR code linking to this scoreboard'});
+    const urlInput = el('input', {type:'text', value: currentUrl});
+    const copyBtn = el('button', {class:'copy'}, 'Copy link');
+
+    urlInput.addEventListener('input', () => {
+      currentUrl = urlInput.value.trim();
+      qr.src = qrImgSrc(currentUrl || window.location.href);
+    });
+    copyBtn.addEventListener('click', async () => {
+      try{
+        await navigator.clipboard.writeText(urlInput.value.trim());
+        toast('Link copied');
+      }catch(e){
+        urlInput.select();
+        toast('Select and copy the link above');
+      }
+    });
+
+    const body = el('div', {class:'sharebody'},
+      el('h3', {}, 'Share this board'),
+      el('p', {}, 'Scan to open the leaderboard on any phone, or copy the link below. If this address doesn\'t match the link you share with your class, paste the correct one here and the QR code will update.'),
+      el('div', {class:'row'}, urlInput, copyBtn)
+    );
+    panel.appendChild(qr);
+    panel.appendChild(body);
+    area.appendChild(panel);
+  }
+
+  function renderAll(){
+    renderTitle();
+    renderSharePanel();
+    renderVerseCard();
+    renderClassStats();
+    renderLeaderboard();
+    renderModeBtn();
+    renderGate();
+    renderTeacherPanel();
+  }
+
+  $('#shareBtn').addEventListener('click', () => {
+    const area = $('#shareArea');
+    area.dataset.open = area.dataset.open ? '' : '1';
+    renderSharePanel();
+  });
+
+  $('#modeBtn').addEventListener('click', () => {
+    if(isTeacher) return; // use "Exit teacher mode" inside panel instead
+    const area = $('#gateArea');
+    area.dataset.open = area.dataset.open ? '' : '1';
+    renderAll();
+    if(area.dataset.open){
+      setTimeout(()=>{ const i = area.querySelector('input'); if(i) i.focus(); }, 50);
+    }
+  });
+
+  async function pollForUpdates(){
+    try{
+      const r = await window.storage.get(ROSTER_KEY, SHARED);
+      const rStr = r ? r.value : null;
+      const s = await window.storage.get(SCORES_KEY, SHARED);
+      const sStr = s ? s.value : null;
+      let changed = false;
+      if(rStr !== lastRosterStr){
+        roster = rStr ? fillMissingDates(JSON.parse(rStr)) : defaultRoster();
+        lastRosterStr = rStr;
+        changed = true;
+        if(!activeWeekId && roster.weeks.length) activeWeekId = pickDefaultWeekId();
+        if(activeWeekId && !roster.weeks.find(w=>w.id===activeWeekId)){
+          activeWeekId = roster.weeks.length ? pickDefaultWeekId() : null;
+        }
+      }
+      if(sStr !== lastScoresStr){
+        scores = sStr ? JSON.parse(sStr) : {};
+        lastScoresStr = sStr;
+        changed = true;
+      }
+      if(changed) renderAll();
+    }catch(e){ /* transient — ignore, next poll will retry */ }
+  }
+
+  async function init(){
+    await loadAll();
+    verseEditMonth = monthKey(new Date());
+    lastRosterStr = JSON.stringify(roster);
+    lastScoresStr = JSON.stringify(scores);
+    renderAll();
+    pollTimer = setInterval(pollForUpdates, 3000);
+  }
+
+  init();
+})();
+</script>
+</body>
+</html>
